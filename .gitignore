@@ -142,5 +142,8 @@ static/
 media/
 venv
 .env
-
+foodgram_bd_local/
+foodgram_bd_local/*
 help.txt
+backend/recipes/migrations/*
+backend/users/migrations/*

@@ -17,6 +17,8 @@ services:
   backend:
     build: ./backend/
     env_file: .env
+    environment:
+      POSTGRES_HOST: ${POSTGRES_HOST_ON_DOCKER}
     depends_on:
       - foodgramdb
     volumes:
