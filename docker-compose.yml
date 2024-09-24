@@ -1,10 +1,11 @@
-version: '3'
+version: '3.3'
 
 volumes:
   pg_data:
   static:
   media:
-
+  frontend_static:  # Общий том для статических файлов
+  docs:
 
 services:
   foodgramdb:
@@ -12,6 +13,7 @@ services:
     env_file: .env
     volumes:
       - ${MEDIA_ROOT_LOCAL}/db:/var/lib/postgresql/data
+
   backend:
     build: ./backend/
     env_file: .env
@@ -20,17 +22,20 @@ services:
     volumes:
       - static:/backend_static
       - media:/Users/el/dev/media/media
+
   frontend:
     env_file: .env
     build: ./frontend/
-    command: cp -r /app/build/. /static/
+    command: cp -r /app/build/. /frontend_static/  # Копируем в общий том
     volumes:
-      - static:/static
+      - frontend_static:/frontend_static  # Монтируем общий том
 
-  infra:
-    build: ./infra/
+  gateway:
+    build: ./gateway/
     volumes:
       - static:/staticfiles/
+      - frontend_static:/usr/share/nginx/html/
       - media:/Users/el/dev/media/media
+      - ./docs/:/usr/share/nginx/html/api/docs/
     ports:
       - 8000:80

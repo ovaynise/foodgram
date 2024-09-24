@@ -142,3 +142,5 @@ static/
 media/
 venv
 .env
+
+help.txt
