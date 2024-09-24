@@ -1,19 +1,25 @@
-from django.contrib.auth import get_user_model
-from django.db import models
 from core.models import BaseModel
+from django.contrib.auth import get_user_model
+from django.core.validators import MinValueValidator
+from django.db import models
+
+from .constants import (MAX_RECIPE_NAME, MAX_RECIPE_TEXT,
+                        MAX_STR_INGRIDIENT_NAME, MAX_STR_MEASUEREMENT_UNIT,
+                        MAX_TAG_LENGTH, MIN_TIME_COOKING)
+from .validators import validate_tag
 
 User = get_user_model()
 
 
 class Tag(BaseModel):
-    title = models.CharField(
-        max_length=60,
+    name = models.CharField(
+        max_length=MAX_TAG_LENGTH,
         verbose_name='Название тега',
-        unique=True
     )
     slug = models.SlugField(
-        max_length=60,
+        max_length=MAX_TAG_LENGTH,
         unique=True,
+        validators=[validate_tag],
         verbose_name='Slug'
     )
 
@@ -22,12 +28,12 @@ class Tag(BaseModel):
 
 
 class Ingredient(BaseModel):
-    title = models.CharField(
-        max_length=60,
+    name = models.CharField(
+        max_length=MAX_STR_INGRIDIENT_NAME,
         verbose_name='Название ингридиента',
     )
-    unit_of_measurement = models.CharField(
-        max_length=60,
+    measurement_unit = models.CharField(
+        max_length=MAX_STR_MEASUEREMENT_UNIT,
         verbose_name='Единица измерения',
         blank=True,
         null=True
@@ -38,8 +44,8 @@ class Ingredient(BaseModel):
 
 
 class Recipe(BaseModel):
-    title = models.CharField(
-        max_length=128,
+    name = models.CharField(
+        max_length=MAX_RECIPE_NAME,
         verbose_name='Название рецепта',
         unique=True
     )
@@ -49,8 +55,8 @@ class Recipe(BaseModel):
         blank=True,
         null=True
     )
-    about = models.TextField(
-        max_length=1000,
+    text = models.TextField(
+        max_length=MAX_RECIPE_TEXT,
         verbose_name='Описание рецепта',
     )
     tags = models.ManyToManyField(
@@ -63,8 +69,9 @@ class Recipe(BaseModel):
         through='IngredientRecipe',
         related_name='recipes_with_ingredient'
     )
-    cook_time = models.IntegerField(
+    cooking_time = models.IntegerField(
         verbose_name='Время приготовления в минутах',
+        validators=[MinValueValidator(MIN_TIME_COOKING)]
     )
 
     def __str__(self):
@@ -83,8 +90,5 @@ class IngredientRecipe(models.Model):
     ingredient = models.ForeignKey(Ingredient, on_delete=models.CASCADE)
     recipe = models.ForeignKey(Recipe, on_delete=models.CASCADE)
 
-
     def __str__(self):
         return f"{self.recipe.title} - {self.ingredient.title}"
-
-

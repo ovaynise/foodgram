@@ -1,11 +1,18 @@
 from django.contrib import admin
-from django.contrib.auth.admin import UserAdmin
 
 from .models import RegularUser
 
 
-UserAdmin.fieldsets += (
-    ('Extra Fields', {'fields': ('bio',)}),
-)
+class RegularUserAdmin(admin.ModelAdmin):
+    list_display = (
+        'id',
+        'username',
+        'email',
+        'first_name',
+        'last_name',
+        'is_subscribed',
+        'avatar',
+    )
 
-admin.site.register(RegularUser, UserAdmin)
+
+admin.site.register(RegularUser, RegularUserAdmin)

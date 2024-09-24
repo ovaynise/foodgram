@@ -1,13 +1,12 @@
-
 from django.contrib import admin
 
-from .models import (Tag, Ingredient, Recipe)
+from .models import Ingredient, Recipe, Tag
 
 
 class TagAdmin(admin.ModelAdmin):
     list_display = (
         'pk',
-        'title',
+        'name',
         'slug',
     )
 
@@ -15,18 +14,18 @@ class TagAdmin(admin.ModelAdmin):
 class IngredientAdmin(admin.ModelAdmin):
     list_display = (
         'pk',
-        'title',
-        'unit_of_measurement',
+        'name',
+        'measurement_unit',
     )
 
 
 class RecipeAdmin(admin.ModelAdmin):
     list_display = (
         'pk',
-        'title',
+        'name',
         'image',
-        'about',
-        'cook_time'
+        'text',
+        'cooking_time'
     )
 
 
