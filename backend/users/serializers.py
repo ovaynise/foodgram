@@ -1,20 +1,86 @@
-from core.serializers import Base64ImageField
-from django.contrib.auth import get_user_model
+from django.contrib.auth import authenticate, get_user_model
+from djoser.serializers import TokenCreateSerializer
+from djoser.serializers import UserSerializer as DjoserUserSerializer
 from rest_framework import serializers
+
+from backend.settings import LOGIN_FIELD
+from core.serializers import Base64ImageField
 
 User = get_user_model()
 
 
-class UserSerializer(serializers.ModelSerializer):
+class AvatarSerializer(serializers.ModelSerializer):
     avatar = Base64ImageField(required=False, allow_null=True)
 
     class Meta:
         model = User
-        fields = ['email', 'id', 'username', 'first_name', 'last_name',
-                  'is_subscribed', 'avatar']
-        extra_kwargs = {
-            'username': {'required': True},
-            'first_name': {'required': True},
-            'last_name': {'required': True},
-            'is_subscribed': {'required': False},
-        }
+        fields = ['avatar']
+
+    def update(self, instance, validated_data):
+        avatar = validated_data.get('avatar', None)
+        if avatar:
+            instance.avatar = avatar
+        instance.save()
+        return instance
+
+
+class CustomUserSerializer(DjoserUserSerializer):
+    avatar = Base64ImageField(required=False, allow_null=True)
+
+    class Meta:
+        model = User
+        fields = (
+            'email', 'id', 'username', 'first_name', 'last_name',
+            'is_subscribed', 'avatar'
+        )
+
+    def create(self, validated_data):
+        password = validated_data.pop('password', None)
+        user = super().create(validated_data)  # Создаем пользователя
+        user.set_password(password)  # Устанавливаем пароль
+        user.save()  # Сохраняем пользователя
+        return user  # Возвращаем экземпляр пользователя
+
+    def to_representation(self, instance):
+        # Проверяем, если это создание пользователя
+        if self.context['request'].method == 'POST':
+            return {
+                "email": instance.email,
+                "id": instance.id,
+                "username": instance.username,
+                "first_name": instance.first_name,
+                "last_name": instance.last_name,
+            }
+        # Если не POST, используем стандартное представление
+        return super().to_representation(instance)
+
+
+class CustomTokenCreateSerializer(TokenCreateSerializer):
+    """Сериализатор создания токена по email."""
+    password = serializers.CharField(
+        required=False,
+        style={"input_type": "password"})
+
+    default_error_messages = {
+        "invalid_credentials": "Invalid Email or Password, please try again",
+        "inactive_account": "No active account found with given credentials",
+    }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.user = None
+        self.fields[LOGIN_FIELD] = serializers.CharField(required=False)
+
+    def validate(self, attrs):
+        password = attrs.get("password")
+        params = {LOGIN_FIELD: attrs.get(LOGIN_FIELD)}
+        self.user = authenticate(
+            request=self.context.get("request"), **params, password=password
+        )
+        if not self.user:
+            self.user = User.objects.filter(**params).first()
+            if self.user and not self.user.check_password(password):
+                self.fail("invalid_credentials")
+        if self.user and self.user.is_active:
+            return attrs
+        self.fail("invalid_credentials")

@@ -1,14 +1,15 @@
 from django.urls import include, path, re_path
 from rest_framework.routers import DefaultRouter
-from users.views import UserViewSet
+
+from users.views import AvatarDetail
 
 router = DefaultRouter()
-router.register('users', UserViewSet, basename='users')
+
 
 app_name = "api"
 
 urlpatterns = [
-    path('', include(router.urls)),
-    path('auth/', include('djoser.urls')),  # Djoser эндпоинты
+    path('', include('djoser.urls')),  # Djoser эндпоинты
     re_path(r'^auth/', include('djoser.urls.authtoken')),  # Djoser токены
+    path('users/me/avatar/', AvatarDetail.as_view(), name='avatar-update'),
 ]

@@ -1,7 +1,8 @@
-from core.models import BaseModel
 from django.contrib.auth import get_user_model
 from django.core.validators import MinValueValidator
 from django.db import models
+
+from core.models import BaseModel
 
 from .constants import (MAX_RECIPE_NAME, MAX_RECIPE_TEXT,
                         MAX_STR_INGRIDIENT_NAME, MAX_STR_MEASUEREMENT_UNIT,
