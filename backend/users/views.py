@@ -1,11 +1,23 @@
 from django.contrib.auth import get_user_model
-from rest_framework import viewsets
+from rest_framework import generics, status
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
 
-from .serializers import UserSerializer
+from users.serializers import AvatarSerializer
 
 User = get_user_model()
 
 
-class UserViewSet(viewsets.ModelViewSet):
+class AvatarDetail(generics.DestroyAPIView, generics.UpdateAPIView):
     queryset = User.objects.all()
-    serializer_class = UserSerializer
+    serializer_class = AvatarSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_object(self):
+        return self.request.user
+
+    def destroy(self, request, *args, **kwargs):
+        user = self.get_object()
+        # Очищаем поле аватара
+        user.avatar.delete(save=True)
+        return Response(status=status.HTTP_204_NO_CONTENT)

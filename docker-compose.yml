@@ -12,7 +12,7 @@ services:
     image: postgres:14.5
     env_file: .env
     volumes:
-      - ${MEDIA_ROOT_LOCAL}/db:/var/lib/postgresql/data
+      - ${MEDIA_ROOT}/db:/var/lib/postgresql/data
 
   backend:
     build: ./backend/
@@ -23,7 +23,7 @@ services:
       - foodgramdb
     volumes:
       - static:/backend_static
-      - media:/Users/el/dev/media/media
+      - media:${MEDIA_ROOT}
 
   frontend:
     env_file: .env
@@ -37,7 +37,7 @@ services:
     volumes:
       - static:/staticfiles/
       - frontend_static:/usr/share/nginx/html/
-      - media:/Users/el/dev/media/media
+      - media:${MEDIA_ROOT}
       - ./docs/:/usr/share/nginx/html/api/docs/
     ports:
       - 8000:80
