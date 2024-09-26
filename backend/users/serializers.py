@@ -1,4 +1,5 @@
 from django.contrib.auth import authenticate, get_user_model
+from django.db import IntegrityError
 from djoser.serializers import TokenCreateSerializer
 from djoser.serializers import UserSerializer as DjoserUserSerializer
 from rest_framework import serializers
@@ -26,23 +27,25 @@ class AvatarSerializer(serializers.ModelSerializer):
 
 class CustomUserSerializer(DjoserUserSerializer):
     avatar = Base64ImageField(required=False, allow_null=True)
+    password = serializers.CharField(write_only=True)
 
     class Meta:
         model = User
         fields = (
             'email', 'id', 'username', 'first_name', 'last_name',
-            'is_subscribed', 'avatar'
+            'is_subscribed', 'avatar', 'password'
         )
 
     def create(self, validated_data):
         password = validated_data.pop('password', None)
-        user = super().create(validated_data)  # Создаем пользователя
-        user.set_password(password)  # Устанавливаем пароль
-        user.save()  # Сохраняем пользователя
-        return user  # Возвращаем экземпляр пользователя
+        if password is None:
+            raise serializers.ValidationError("Пароль обязателен.")
+        user = super().create(validated_data)
+        user.set_password(password)
+        user.save()
+        return user
 
     def to_representation(self, instance):
-        # Проверяем, если это создание пользователя
         if self.context['request'].method == 'POST':
             return {
                 "email": instance.email,
@@ -51,12 +54,11 @@ class CustomUserSerializer(DjoserUserSerializer):
                 "first_name": instance.first_name,
                 "last_name": instance.last_name,
             }
-        # Если не POST, используем стандартное представление
         return super().to_representation(instance)
 
 
 class CustomTokenCreateSerializer(TokenCreateSerializer):
-    """Сериализатор создания токена по email."""
+    """Сериализатор создания и выдачи токена по email."""
     password = serializers.CharField(
         required=False,
         style={"input_type": "password"})
