@@ -10,7 +10,6 @@ class RegularUserAdmin(admin.ModelAdmin):
         'email',
         'first_name',
         'last_name',
-        'is_subscribed',
         'avatar',
     )
 
