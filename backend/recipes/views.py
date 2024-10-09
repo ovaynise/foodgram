@@ -4,11 +4,10 @@ from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
 from dotenv import find_dotenv, load_dotenv
 from hashids import Hashids
-from recipes.pagination import RecipePagination
+from recipes.pagination import SubscribePagination, RecipePagination
 from rest_framework import filters, generics, status, viewsets
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
-from rest_framework.views import APIView
 
 from .models import (Favorite, Ingredient, Recipe, ShoppingCart, Subscriptions,
                      Tag)
@@ -26,7 +25,8 @@ SALT = os.getenv("SALT")
 class SubscribeViewSet(viewsets.ModelViewSet):
     """ViewSet для подписки и отписки от пользователя"""
     serializer_class = SubscribeSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticatedOrReadOnly]
+    pagination_class = SubscribePagination
 
     def get_queryset(self):
         return Subscriptions.objects.filter(user=self.request.user)
@@ -61,7 +61,8 @@ class SubscribeViewSet(viewsets.ModelViewSet):
 class SubscriptionsViewSet(viewsets.ModelViewSet):
     """ViewSet для отображения подписок пользователя."""
     serializer_class = SubscribeSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticatedOrReadOnly]
+    pagination_class = SubscribePagination
 
     def get_queryset(self):
         # Получаем все подписки текущего пользователя
@@ -77,17 +78,6 @@ class SubscriptionsViewSet(viewsets.ModelViewSet):
 
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
-
-
-class DownloadShopCartView(APIView):
-    permission_classes = [IsAuthenticated]
-
-    def get(self, request, *args, **kwargs):
-        # file_path = 'path/to/your/file.txt'  # Заменить на путь к файлу
-        # response = FileResponse(open(file_path, 'rb'), as_attachment=True)
-        return Response(
-            "Здесь будет выдаваться файл",
-            status=status.HTTP_200_OK)
 
 
 class RecipeShortLinkView(generics.GenericAPIView):
@@ -106,7 +96,7 @@ class RecipeShortLinkView(generics.GenericAPIView):
 class ShoppingCartViewSet(viewsets.ModelViewSet):
     queryset = ShoppingCart.objects.all()
     serializer_class = ShoppingCartSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticatedOrReadOnly]
 
     def create(self, request, *args, **kwargs):
         recipe_id = self.kwargs['pk']
@@ -136,7 +126,7 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
 class FavoriteViewSet(viewsets.ModelViewSet):
     queryset = Favorite.objects.all()
     serializer_class = FavoriteSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticatedOrReadOnly]
 
     def create(self, request, *args, **kwargs):
         recipe_id = self.kwargs['pk']
@@ -160,7 +150,7 @@ class FavoriteViewSet(viewsets.ModelViewSet):
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticatedOrReadOnly]
     queryset = Recipe.objects.all()
     pagination_class = RecipePagination
 

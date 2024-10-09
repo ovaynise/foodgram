@@ -11,7 +11,7 @@ User = get_user_model()
 
 
 class AvatarSerializer(serializers.ModelSerializer):
-    avatar = Base64ImageField(required=False, allow_null=True)
+    avatar = Base64ImageField(required=True)
 
     class Meta:
         model = User
@@ -36,6 +36,15 @@ class CustomUserSerializer(DjoserUserSerializer):
             'email', 'id', 'username', 'first_name', 'last_name',
             'is_subscribed', 'avatar', 'password'
         )
+
+    def validate(self, attrs):
+        if 'first_name' not in attrs or not attrs['first_name']:
+            raise serializers.ValidationError(
+                {"first_name": "Это поле обязательно."})
+        if 'last_name' not in attrs or not attrs['last_name']:
+            raise serializers.ValidationError(
+                {"last_name": "Это поле обязательно."})
+        return super().validate(attrs)
 
     def create(self, validated_data):
         password = validated_data.pop('password', None)

@@ -219,10 +219,11 @@ class IngredientRecipePostSerializer(serializers.ModelSerializer):
 
 class RecipePostSerializer(serializers.ModelSerializer):
     ingredients = IngredientRecipePostSerializer(
-        many=True)
+        many=True, required=True)
     tags = serializers.PrimaryKeyRelatedField(queryset=Tag.objects.all(),
-                                              many=True)
-    image = Base64ImageField(required=False, allow_null=True)
+                                              many=True,
+                                              required=True,)
+    image = Base64ImageField(required=True, allow_null=True)
 
     class Meta:
         model = Recipe
