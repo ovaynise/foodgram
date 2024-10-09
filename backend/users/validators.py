@@ -1,7 +1,6 @@
 import re
 
 from django.core.exceptions import ValidationError
-
 from users.constants import MAX_STRING_LENGTH, OWN_USERNAME
 
 

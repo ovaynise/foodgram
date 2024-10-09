@@ -1,10 +1,11 @@
+from core.serializers import Base64ImageField
 from django.contrib.auth import authenticate, get_user_model
 from djoser.serializers import TokenCreateSerializer
 from djoser.serializers import UserSerializer as DjoserUserSerializer
+from recipes.models import Subscriptions
 from rest_framework import serializers
 
 from backend.settings import LOGIN_FIELD
-from core.serializers import Base64ImageField
 
 User = get_user_model()
 
@@ -26,23 +27,33 @@ class AvatarSerializer(serializers.ModelSerializer):
 
 class CustomUserSerializer(DjoserUserSerializer):
     avatar = Base64ImageField(required=False, allow_null=True)
+    password = serializers.CharField(write_only=True)
+    is_subscribed = serializers.SerializerMethodField()
 
     class Meta:
         model = User
         fields = (
             'email', 'id', 'username', 'first_name', 'last_name',
-            'is_subscribed', 'avatar'
+            'is_subscribed', 'avatar', 'password'
         )
 
     def create(self, validated_data):
         password = validated_data.pop('password', None)
-        user = super().create(validated_data)  # Создаем пользователя
-        user.set_password(password)  # Устанавливаем пароль
-        user.save()  # Сохраняем пользователя
-        return user  # Возвращаем экземпляр пользователя
+        if password is None:
+            raise serializers.ValidationError("Пароль обязателен.")
+        user = super().create(validated_data)
+        user.set_password(password)
+        user.save()
+        return user
+
+    def get_is_subscribed(self, obj):
+        request = self.context.get('request')
+        if request and not request.user.is_anonymous:
+            return Subscriptions.objects.filter(user=request.user,
+                                                author=obj).exists()
+        return False
 
     def to_representation(self, instance):
-        # Проверяем, если это создание пользователя
         if self.context['request'].method == 'POST':
             return {
                 "email": instance.email,
@@ -51,19 +62,18 @@ class CustomUserSerializer(DjoserUserSerializer):
                 "first_name": instance.first_name,
                 "last_name": instance.last_name,
             }
-        # Если не POST, используем стандартное представление
         return super().to_representation(instance)
 
 
 class CustomTokenCreateSerializer(TokenCreateSerializer):
-    """Сериализатор создания токена по email."""
+    """Сериализатор создания и выдачи токена по email."""
     password = serializers.CharField(
         required=False,
         style={"input_type": "password"})
 
     default_error_messages = {
-        "invalid_credentials": "Invalid Email or Password, please try again",
-        "inactive_account": "No active account found with given credentials",
+        "invalid_credentials": "Не правильный Email или Password",
+        "inactive_account": "Нет аккаунтов с такими данными",
     }
 
     def __init__(self, *args, **kwargs):

@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
+    'django_filters',
     'rest_framework.authtoken',
     'djoser',
     'corsheaders',
@@ -155,7 +156,7 @@ CORS_ALLOWED_ORIGINS = [
 
 REST_FRAMEWORK = {
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
-    'PAGE_SIZE': 5,
+    'PAGE_SIZE': 10,
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.AllowAny',
     ],
@@ -167,10 +168,12 @@ REST_FRAMEWORK = {
 
 DJOSER = {
     'SERIALIZERS': {
-        'token_create': 'users.serializers.CustomTokenCreateSerializer',  # кастомный сериализатор для /auth/token/login/
+        'token_create': 'users.serializers.CustomTokenCreateSerializer',
         'user': 'users.serializers.CustomUserSerializer',
         'user_create': 'users.serializers.CustomUserSerializer',
         'current_user': 'users.serializers.CustomUserSerializer',
     },
 }
 LOGIN_FIELD = 'email'
+
+CSV_DATA_PATH = 'static/data/'

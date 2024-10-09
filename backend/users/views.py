@@ -2,7 +2,6 @@ from django.contrib.auth import get_user_model
 from rest_framework import generics, status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-
 from users.serializers import AvatarSerializer
 
 User = get_user_model()
@@ -18,6 +17,5 @@ class AvatarDetail(generics.DestroyAPIView, generics.UpdateAPIView):
 
     def destroy(self, request, *args, **kwargs):
         user = self.get_object()
-        # Очищаем поле аватара
         user.avatar.delete(save=True)
         return Response(status=status.HTTP_204_NO_CONTENT)
