@@ -5,7 +5,8 @@ from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from dotenv import find_dotenv, load_dotenv
 from hashids import Hashids
-from recipes.pagination import SubscribePagination, RecipePagination
+from recipes.filters import IngredientFilter, RecipeFilter
+from recipes.pagination import RecipePagination, SubscribePagination
 from rest_framework import filters, generics, status, viewsets
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
@@ -16,7 +17,7 @@ from .serializers import (FavoriteSerializer, IngredientSerializer,
                           RecipeGetSerializer, RecipePostSerializer,
                           ShoppingCartSerializer, SubscribeSerializer,
                           TagSerializer)
-from recipes.filters import IngredientFilter, RecipeFilter
+
 User = get_user_model()
 load_dotenv(find_dotenv())
 SERVER_HOST = os.getenv("SERVER_DOMEN")
@@ -36,22 +37,16 @@ class SubscribeViewSet(viewsets.ModelViewSet):
         author_id = self.kwargs['pk']
         author = get_object_or_404(User, id=author_id)
         user = request.user
-
-        # Проверка на попытку подписаться на самого себя
         if user.id == author.id:
             return Response(
                 {'detail': 'Вы не можете подписаться на самого себя.'},
                 status=status.HTTP_400_BAD_REQUEST
             )
-
-        # Проверка на существующую подписку
         if Subscriptions.objects.filter(user=user, author=author).exists():
             return Response(
                 {'detail': 'Вы уже подписаны на этого пользователя.'},
                 status=status.HTTP_400_BAD_REQUEST
             )
-
-        # Создание подписки
         subscription = Subscriptions.objects.create(user=user, author=author)
         serializer = self.get_serializer(subscription)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -60,8 +55,6 @@ class SubscribeViewSet(viewsets.ModelViewSet):
         author_id = self.kwargs['pk']
         author = get_object_or_404(User, id=author_id)
         user = request.user
-
-        # Проверка на существование подписки
         subscription = Subscriptions.objects.filter(user=user,
                                                     author=author).first()
         if subscription is None:
@@ -85,7 +78,6 @@ class SubscriptionsViewSet(viewsets.ModelViewSet):
     pagination_class = SubscribePagination
 
     def get_queryset(self):
-        # Получаем все подписки текущего пользователя
         return Subscriptions.objects.filter(user=self.request.user)
 
     def list(self, request, *args, **kwargs):
@@ -99,9 +91,33 @@ class SubscriptionsViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
+    def create(self, request, *args, **kwargs):
+        """POST запрос для подписки с поддержкой recipes_limit"""
+        author_id = kwargs.get('pk')
+        user = request.user
+        author = get_object_or_404(User, id=author_id)
+
+        if user == author:
+            return Response(
+                {'detail': 'Нельзя подписаться на самого себя.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        subscription, created = Subscriptions.objects.get_or_create(
+            user=user,
+            author=author
+        )
+        context = self.get_serializer_context()
+        context['request'] = request
+        serializer = self.get_serializer(subscription, context=context)
+        return Response(
+            serializer.data,
+            status=status.HTTP_201_CREATED if created else status.HTTP_200_OK)
+
 
 class RecipeShortLinkView(generics.GenericAPIView):
     hashids = Hashids(min_length=4, salt="SALT")
+
     def get(self, request, id):
         recipe = get_object_or_404(Recipe, id=id)
         short_id = self.hashids.encode(recipe.id)
@@ -132,18 +148,21 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
     def destroy(self, request, *args, **kwargs):
         recipe_id = self.kwargs['pk']
         user = request.user
-
-        # Проверка на существование записи в корзине
+        recipe_exists = Recipe.objects.filter(id=recipe_id).exists()
+        if not recipe_exists:
+            return Response(
+                {'detail': 'Рецепт не существует.'},
+                status=status.HTTP_404_NOT_FOUND
+            )
         shopping_cart_item = ShoppingCart.objects.filter(recipe__id=recipe_id,
                                                          user=user).first()
 
-        if shopping_cart_item is None:  # Если запись не найдена, возвращаем 404
+        if shopping_cart_item is None:
             return Response(
                 {'detail': 'Рецепт не найден в корзине.'},
-                status=status.HTTP_404_NOT_FOUND
+                status=status.HTTP_400_BAD_REQUEST
             )
 
-        # Удаление записи, если она существует
         shopping_cart_item.delete()
         return Response({'detail': 'Рецепт удалён из корзины'},
                         status=status.HTTP_204_NO_CONTENT)
@@ -169,9 +188,21 @@ class FavoriteViewSet(viewsets.ModelViewSet):
     def destroy(self, request, *args, **kwargs):
         recipe_id = self.kwargs['pk']
         user = self.request.user
-        favorite = get_object_or_404(Favorite, recipe__id=recipe_id, user=user)
+        recipe_exists = Recipe.objects.filter(id=recipe_id).exists()
+        if not recipe_exists:
+            return Response(
+                {'detail': 'Рецепт не существует.'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        favorite = Favorite.objects.filter(recipe__id=recipe_id,
+                                           user=user).first()
+        if favorite is None:
+            return Response(
+                {'detail': 'Рецепт не найден в избранном.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
         favorite.delete()
-        return Response({'detail': 'Recipe removed from favorites'},
+        return Response({'detail': 'Рецепт удалён из избранного'},
                         status=status.HTTP_204_NO_CONTENT)
 
 
@@ -185,14 +216,10 @@ class RecipeViewSet(viewsets.ModelViewSet):
     def partial_update(self, request, *args, **kwargs):
         recipe_id = self.kwargs['pk']
         recipe = get_object_or_404(Recipe, id=recipe_id)
-
-        # Проверяем, является ли пользователь владельцем рецепта
         if recipe.author != request.user:
             return Response(
                 {'detail': 'У вас нет прав на обновление этого рецепта.'},
                 status=status.HTTP_403_FORBIDDEN)
-
-        # Если пользователь владелец, продолжаем с обновлением
         serializer = self.get_serializer(recipe, data=request.data,
                                          partial=True)
         serializer.is_valid(raise_exception=True)
@@ -201,9 +228,9 @@ class RecipeViewSet(viewsets.ModelViewSet):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def get_serializer_class(self):
-            if self.request.method == 'GET':
-                return RecipeGetSerializer
-            return RecipePostSerializer
+        if self.request.method == 'GET':
+            return RecipeGetSerializer
+        return RecipePostSerializer
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)

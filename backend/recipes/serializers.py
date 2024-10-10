@@ -45,13 +45,11 @@ class SubscribeSerializer(serializers.ModelSerializer):
     author = serializers.HiddenField(default=serializers.CurrentUserDefault())
     user = serializers.PrimaryKeyRelatedField(read_only=True)
     is_subscribed = serializers.SerializerMethodField()
-    recipes = RecipeShortSerializer(
-        many=True,
-        source='author.recipes',
-        read_only=True)
+    recipes = serializers.SerializerMethodField()
     recipes_count = serializers.IntegerField(
         source='author.recipes.count',
-        read_only=True)
+        read_only=True
+    )
 
     class Meta:
         model = Subscriptions
@@ -62,12 +60,14 @@ class SubscribeSerializer(serializers.ModelSerializer):
         return Subscriptions.objects.create(**validated_data)
 
     def to_representation(self, instance):
-        """Отображаем пользователя с полным URL изображения
-        в ответе и его рецепты."""
+        """Отображаем пользователя с полным URL изображения и его рецепты."""
         request = self.context.get('request')
         user = instance.author
         image_url = user.avatar.url if user.avatar else None
-        recipes = user.recipes.all()[:3]
+        limit = request.query_params.get('recipes_limit', None)
+        recipes = user.recipes.all()
+        if limit is not None:
+            recipes = recipes[:int(limit)]
 
         return {
             "email": user.email,
@@ -93,6 +93,18 @@ class SubscribeSerializer(serializers.ModelSerializer):
                 author=obj.author
             ).exists()
         return False
+
+    def get_recipes(self, obj):
+        """Получаем рецепты автора с учетом лимита."""
+        request = self.context.get('request')
+        limit = request.query_params.get('recipes_limit')
+        recipes = obj.author.recipes.all()
+        if limit:
+            recipes = recipes[:int(limit)]
+        return RecipeShortSerializer(
+            recipes,
+            many=True,
+            context=self.context).data
 
 
 class ShoppingCartSerializer(serializers.ModelSerializer):
@@ -268,8 +280,8 @@ class RecipePostSerializer(serializers.ModelSerializer):
                                     f'существует.'})
             if amount <= 0:
                 raise serializers.ValidationError(
-                    {'ingredients': f'Количество для ингред'
-                                    f'иента с ID {ingredient_id} '
+                    {'ingredients': f'Количество для '
+                                    f'ингредиента с ID {ingredient_id} '
                                     f'должно быть больше 0.'})
         return attrs
 
