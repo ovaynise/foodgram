@@ -4,6 +4,7 @@ from djoser.serializers import TokenCreateSerializer
 from djoser.serializers import UserSerializer as DjoserUserSerializer
 from recipes.models import Subscriptions
 from rest_framework import serializers
+from rest_framework.exceptions import AuthenticationFailed
 
 from backend.settings import LOGIN_FIELD
 
@@ -63,7 +64,10 @@ class CustomUserSerializer(DjoserUserSerializer):
         return False
 
     def to_representation(self, instance):
-        if self.context['request'].method == 'POST':
+        request = self.context.get('request')
+        if request.path == '/api/users/me/' and request.user.is_anonymous:
+            raise AuthenticationFailed("Пожалуйста, авторизуйтесь.")
+        if request.method == 'POST':
             return {
                 "email": instance.email,
                 "id": instance.id,
@@ -71,6 +75,7 @@ class CustomUserSerializer(DjoserUserSerializer):
                 "first_name": instance.first_name,
                 "last_name": instance.last_name,
             }
+
         return super().to_representation(instance)
 
 

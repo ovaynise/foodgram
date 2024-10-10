@@ -201,11 +201,15 @@ class RecipeGetSerializer(serializers.ModelSerializer):
 
     def get_is_favorited(self, obj):
         user = self.context['request'].user
-        return Favorite.objects.filter(user=user, recipe=obj).exists()
+        if user.is_authenticated:
+            return Favorite.objects.filter(user=user, recipe=obj).exists()
+        return False
 
     def get_is_in_shopping_cart(self, obj):
         user = self.context['request'].user
-        return ShoppingCart.objects.filter(user=user, recipe=obj).exists()
+        if user.is_authenticated:
+            return ShoppingCart.objects.filter(user=user, recipe=obj).exists()
+        return False
 
 
 class IngredientRecipePostSerializer(serializers.ModelSerializer):
@@ -236,6 +240,38 @@ class RecipePostSerializer(serializers.ModelSerializer):
             'text',
             'cooking_time',
         )
+
+    def validate(self, attrs):
+        ingredients_data = attrs.get('ingredients')
+        tags_data = attrs.get('tags')
+        if not ingredients_data:
+            raise serializers.ValidationError(
+                {'ingredients': 'Это поле не может быть пустым.'})
+        if not tags_data:
+            raise serializers.ValidationError(
+                {'tags': 'Это поле не может быть пустым.'})
+        ingredient_ids = [ingredient['id'] for ingredient in ingredients_data]
+        if len(ingredient_ids) != len(set(ingredient_ids)):
+            raise serializers.ValidationError(
+                {'ingredients': 'Ингредиенты не должны повторяться.'})
+        tags_ids = [tag for tag in
+                    tags_data]
+        if len(tags_ids) != len(set(tags_ids)):
+            raise serializers.ValidationError(
+                {'tags': 'Теги не должны повторяться.'})
+        for ingredient_data in ingredients_data:
+            ingredient_id = ingredient_data.get('id')
+            amount = ingredient_data.get('amount')
+            if not Ingredient.objects.filter(id=ingredient_id).exists():
+                raise serializers.ValidationError(
+                    {'ingredients': f'Ингредиент с ID {ingredient_id} не '
+                                    f'существует.'})
+            if amount <= 0:
+                raise serializers.ValidationError(
+                    {'ingredients': f'Количество для ингред'
+                                    f'иента с ID {ingredient_id} '
+                                    f'должно быть больше 0.'})
+        return attrs
 
     def create(self, validated_data):
         tags_data = validated_data.pop('tags')
