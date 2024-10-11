@@ -181,5 +181,5 @@ DJOSER = {
 }
 LOGIN_FIELD = 'email'
 
-CSV_DATA_PATH = 'static/data/'
+CSV_DATA_PATH = 'data/'
 

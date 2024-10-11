@@ -10,7 +10,6 @@ User = get_user_model()
 
 FILES = {
     'ingredients.csv': Ingredient,
-    # Добавьте другие модели и их соответствующие CSV-файлы
 }
 
 
@@ -22,15 +21,12 @@ class Command(BaseCommand):
             try:
                 file_path = os.path.join(settings.CSV_DATA_PATH, csv_file)
                 with open(file_path, encoding='utf-8') as file:
-                    reader = csv.DictReader(file)  # Читаем CSV с заголовками
+                    reader = csv.DictReader(file)
                     for row in reader:
-                        # Убедитесь, что в строке есть все необходимые поля
                         if 'name' in row and 'measurement_unit' in row:
-                            # Создаем или обновляем объект модели
                             obj, created = model.objects.update_or_create(
                                 name=row['name'],  # Используем поле name
                                 measurement_unit=row['measurement_unit']
-                                # Используем поле measurement_unit
                             )
 
                             if created:
