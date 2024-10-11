@@ -6,7 +6,8 @@ User = get_user_model()
 
 class BaseModel(models.Model):
     author = models.ForeignKey(
-        User, verbose_name='Автор записи',
+        User,
+        verbose_name='Автор записи',
         on_delete=models.CASCADE
     )
     created_at = models.DateTimeField(
