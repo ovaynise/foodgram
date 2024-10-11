@@ -15,7 +15,7 @@ services:
       - ${MEDIA_ROOT_SERVER}/db:/var/lib/postgresql/data
 
   backend:
-    build: ./backend/
+    image: ${DOCKER_USERNAME}/foodgram_backend
     env_file: .env
     environment:
       POSTGRES_HOST: ${POSTGRES_HOST_ON_DOCKER}
@@ -27,13 +27,13 @@ services:
 
   frontend:
     env_file: .env
-    build: ./frontend/
+    image: ${DOCKER_USERNAME}/foodgram_frontend
     command: cp -r /app/build/. /frontend_static/
     volumes:
       - frontend_static:/frontend_static
 
   gateway:
-    build: ./gateway/
+    image: ${DOCKER_USERNAME}/foodgram_gateway
     volumes:
       - static:/staticfiles/
       - frontend_static:/usr/share/nginx/html/
