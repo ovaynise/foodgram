@@ -145,7 +145,5 @@ venv
 foodgram_bd_local/
 foodgram_bd_local/*
 help.txt
-backend/recipes/migrations/*
-backend/users/migrations/*
 backend/db.sqlite3
 db.sqlite3
