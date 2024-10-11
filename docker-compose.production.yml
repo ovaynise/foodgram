@@ -1,0 +1,43 @@
+version: '3.3'
+
+volumes:
+  pg_data:
+  static:
+  media:
+  frontend_static:
+  docs:
+
+services:
+  foodgramdb:
+    image: postgres:14.5
+    env_file: .env
+    volumes:
+      - ${MEDIA_ROOT_SERVER}/db:/var/lib/postgresql/data
+
+  backend:
+    build: ./backend/
+    env_file: .env
+    environment:
+      POSTGRES_HOST: ${POSTGRES_HOST_ON_DOCKER}
+    depends_on:
+      - foodgramdb
+    volumes:
+      - static:/backend_static
+      - media:${MEDIA_ROOT_SERVER}
+
+  frontend:
+    env_file: .env
+    build: ./frontend/
+    command: cp -r /app/build/. /frontend_static/
+    volumes:
+      - frontend_static:/frontend_static
+
+  gateway:
+    build: ./gateway/
+    volumes:
+      - static:/staticfiles/
+      - frontend_static:/usr/share/nginx/html/
+      - media:${MEDIA_ROOT_SERVER}
+      - ./docs/:/usr/share/nginx/html/api/docs/
+    ports:
+      - 7000:80

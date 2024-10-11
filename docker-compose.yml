@@ -4,7 +4,7 @@ volumes:
   pg_data:
   static:
   media:
-  frontend_static:  # Общий том для статических файлов
+  frontend_static:
   docs:
 
 services:
@@ -28,9 +28,9 @@ services:
   frontend:
     env_file: .env
     build: ./frontend/
-    command: cp -r /app/build/. /frontend_static/  # Копируем в общий том
+    command: cp -r /app/build/. /frontend_static/
     volumes:
-      - frontend_static:/frontend_static  # Монтируем общий том
+      - frontend_static:/frontend_static
 
   gateway:
     build: ./gateway/
