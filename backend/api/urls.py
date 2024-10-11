@@ -1,8 +1,9 @@
+from core.views import DownloadShopCartView
 from django.urls import include, path, re_path
-from recipes.views import (DownloadShopCartView, FavoriteViewSet,
-                           IngredientViewSet, RecipeShortLinkView,
-                           RecipeViewSet, ShoppingCartViewSet,
-                           SubscribeViewSet, SubscriptionsViewSet, TagViewSet)
+from recipes.views import (FavoriteViewSet, IngredientViewSet,
+                           RecipeShortLinkView, RecipeViewSet,
+                           ShoppingCartViewSet, SubscribeViewSet,
+                           SubscriptionsViewSet, TagViewSet)
 from rest_framework.routers import DefaultRouter
 from users.views import AvatarDetail
 

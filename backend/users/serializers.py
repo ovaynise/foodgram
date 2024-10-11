@@ -4,6 +4,7 @@ from djoser.serializers import TokenCreateSerializer
 from djoser.serializers import UserSerializer as DjoserUserSerializer
 from recipes.models import Subscriptions
 from rest_framework import serializers
+from rest_framework.exceptions import AuthenticationFailed
 
 from backend.settings import LOGIN_FIELD
 
@@ -11,7 +12,7 @@ User = get_user_model()
 
 
 class AvatarSerializer(serializers.ModelSerializer):
-    avatar = Base64ImageField(required=False, allow_null=True)
+    avatar = Base64ImageField(required=True)
 
     class Meta:
         model = User
@@ -37,6 +38,15 @@ class CustomUserSerializer(DjoserUserSerializer):
             'is_subscribed', 'avatar', 'password'
         )
 
+    def validate(self, attrs):
+        if 'first_name' not in attrs or not attrs['first_name']:
+            raise serializers.ValidationError(
+                {"first_name": "Это поле обязательно."})
+        if 'last_name' not in attrs or not attrs['last_name']:
+            raise serializers.ValidationError(
+                {"last_name": "Это поле обязательно."})
+        return super().validate(attrs)
+
     def create(self, validated_data):
         password = validated_data.pop('password', None)
         if password is None:
@@ -54,7 +64,10 @@ class CustomUserSerializer(DjoserUserSerializer):
         return False
 
     def to_representation(self, instance):
-        if self.context['request'].method == 'POST':
+        request = self.context.get('request')
+        if request.path == '/api/users/me/' and request.user.is_anonymous:
+            raise AuthenticationFailed("Пожалуйста, авторизуйтесь.")
+        if request.method == 'POST':
             return {
                 "email": instance.email,
                 "id": instance.id,
@@ -62,6 +75,7 @@ class CustomUserSerializer(DjoserUserSerializer):
                 "first_name": instance.first_name,
                 "last_name": instance.last_name,
             }
+
         return super().to_representation(instance)
 
 

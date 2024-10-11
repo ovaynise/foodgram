@@ -12,6 +12,8 @@ class RegularUserAdmin(admin.ModelAdmin):
         'last_name',
         'avatar',
     )
+    search_fields = ('email', 'username')
+    empty_value_display = 'Не задано'
 
 
 admin.site.register(RegularUser, RegularUserAdmin)
