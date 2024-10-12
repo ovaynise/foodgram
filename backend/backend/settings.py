@@ -178,3 +178,12 @@ DJOSER = {
 LOGIN_FIELD = 'email'
 
 CSV_DATA_PATH = 'data/'
+
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:3000",
+    "https://127.0.0.1",
+    f"http://{SERVER_DOMEN}",
+    f"http://{SERVER_IP}",
+]
+CSRF_TRUSTED_ORIGINS = [f'https://*.{SERVER_DOMEN}', 'https://*.127.0.0.1']
+CORS_URLS_REGEX = r"^/api/.*$"
