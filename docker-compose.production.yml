@@ -28,15 +28,14 @@ services:
   frontend:
     env_file: .env
     image: ${DOCKER_USERNAME}/foodgram_frontend
-    command: cp -r /app/build/. /frontend_static/
+    command: cp -r /app/build/. /static/
     volumes:
-      - frontend_static:/frontend_static
+      - static:/static
 
   gateway:
     image: ${DOCKER_USERNAME}/foodgram_gateway
     volumes:
       - static:/staticfiles/
-      - frontend_static:/usr/share/nginx/html/
       - media:${MEDIA_ROOT_SERVER}
       - ./docs/:/usr/share/nginx/html/api/docs/
     ports:
