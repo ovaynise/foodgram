@@ -6,9 +6,8 @@ class IngredientPagination(PageNumberPagination):
     page_size = 10
 
 
-class RecipePagination(LimitOffsetPagination):
-    default_limit = 6
-    max_limit = 10
+class RecipePagination(PageNumberPagination):
+    page_size = 6
 
 
 class SubscribePagination(LimitOffsetPagination):

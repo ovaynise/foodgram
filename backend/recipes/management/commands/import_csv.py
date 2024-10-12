@@ -25,7 +25,7 @@ class Command(BaseCommand):
                     for row in reader:
                         if 'name' in row and 'measurement_unit' in row:
                             obj, created = model.objects.update_or_create(
-                                name=row['name'],  # Используем поле name
+                                name=row['name'],
                                 measurement_unit=row['measurement_unit']
                             )
 
