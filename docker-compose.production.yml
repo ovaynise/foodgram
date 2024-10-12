@@ -28,7 +28,7 @@ services:
   frontend:
     env_file: .env
     image: ${DOCKER_USERNAME}/foodgram_frontend
-    command: cp -r /app/build/. /frontend_static/static/
+    command: cp -r /app/build/. /frontend_static/
     volumes:
       - frontend_static:/frontend_static
 
