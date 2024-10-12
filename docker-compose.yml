@@ -4,7 +4,6 @@ volumes:
   pg_data:
   static:
   media:
-  frontend_static:
   docs:
 
 services:
@@ -28,15 +27,14 @@ services:
   frontend:
     env_file: .env
     build: ./frontend/
-    command: cp -r /app/build/. /frontend_static/
+    command: cp -r /app/build/. /static/
     volumes:
-      - frontend_static:/frontend_static
+      - static:/static
 
   gateway:
     build: ./gateway/
     volumes:
-      - static:/staticfiles/
-      - frontend_static:/usr/share/nginx/html/
+      - static:/static
       - media:${MEDIA_ROOT}
       - ./docs/:/usr/share/nginx/html/api/docs/
     ports:
