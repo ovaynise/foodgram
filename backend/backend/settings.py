@@ -152,6 +152,7 @@ AUTH_USER_MODEL = 'users.RegularUser'
 CORS_ALLOWED_ORIGINS = [
     'http://localhost:3000',
     'http://localhost:8000',
+    'https://edagram.zapto.org',
 ]
 
 REST_FRAMEWORK = {
@@ -182,4 +183,3 @@ DJOSER = {
 LOGIN_FIELD = 'email'
 
 CSV_DATA_PATH = 'data/'
-
