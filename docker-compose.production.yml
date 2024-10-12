@@ -4,7 +4,6 @@ volumes:
   pg_data:
   static:
   media:
-  frontend_static:
   docs:
 
 services:
@@ -22,8 +21,9 @@ services:
     depends_on:
       - foodgramdb
     volumes:
-      - static:/backend_static
       - media:${MEDIA_ROOT_SERVER}
+      - static:/backend_static
+
 
   frontend:
     env_file: .env
@@ -34,9 +34,11 @@ services:
 
   gateway:
     image: ${DOCKER_USERNAME}/foodgram_gateway
-    volumes:
-      - static:/staticfiles/
-      - media:${MEDIA_ROOT_SERVER}
-      - ./docs/:/usr/share/nginx/html/api/docs/
+    env_file: .env
     ports:
       - 7000:80
+    volumes:
+      - static:/static
+      - media:${MEDIA_ROOT_SERVER}
+      - ./docs/:/usr/share/nginx/html/api/docs/
+
