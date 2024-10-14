@@ -1,59 +1,41 @@
 from io import BytesIO
 
-from core.constants import (BUFFER_START_POSITION, FONT_SIZE,
-                            HORIZONTAL_FONT_POSITION, VERTICAL_FONT_POSITION,
-                            VERTICAL_SPACING)
+from django.db.models import Sum
 from django.http import FileResponse
-from recipes.models import IngredientRecipe, ShoppingCart
-from reportlab.lib.pagesizes import letter
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
-from reportlab.pdfgen import canvas
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
+
+
+from recipes.models import IngredientRecipe
 
 pdfmetrics.registerFont(TTFont('Arial',
                                'core/fonts/ArialRegular.ttf'))
 
 
 class DownloadShopCartView(APIView):
-    """Функция создает список покупок в PDF файл."""
+    """Создает список покупок в текстовый файл."""
     permission_classes = [IsAuthenticated]
 
     def get(self, request, *args, **kwargs):
         user = request.user
-        shopping_cart_items = ShoppingCart.objects.filter(user=user)
-        ingredients = {}
-
-        for item in shopping_cart_items:
-            recipe = item.recipe
-            for ingredient in recipe.ingredients.all():
-                amount = IngredientRecipe.objects.get(
-                    recipe=recipe, ingredient=ingredient).amount
-                if ingredient.name in ingredients:
-                    ingredients[ingredient.name]['amount'] += amount
-                else:
-                    ingredients[ingredient.name] = {
-                        'measurement_unit': ingredient.measurement_unit,
-                        'amount': amount
-                    }
+        ingredients = (IngredientRecipe.objects
+                       .filter(recipe__shoppingcart__user=user)
+                       .values('ingredient__name', 'ingredient__measurement_unit')
+                       .annotate(total_amount=Sum('amount'))
+                       .order_by('ingredient__name'))
+        lines = ['Список ингредиентов:\n']
+        for ingredient in ingredients:
+            lines.append(
+                f'{ingredient["ingredient__name"]}: '
+                f'{ingredient["total_amount"]} '
+                f'{ingredient["ingredient__measurement_unit"]}\n'
+            )
 
         buffer = BytesIO()
-        p = canvas.Canvas(buffer, pagesize=letter)
-        p.setFont('Arial', FONT_SIZE)
-        p.drawString(HORIZONTAL_FONT_POSITION,
-                     VERTICAL_FONT_POSITION, "Список ингредиентов:")
+        buffer.write(''.join(lines).encode('utf-8'))
+        buffer.seek(0)
 
-        y = VERTICAL_FONT_POSITION - VERTICAL_SPACING
-        for name, data in ingredients.items():
-            p.drawString(HORIZONTAL_FONT_POSITION, y,
-                         f"{name}: {data['amount']} "
-                         f"{data['measurement_unit']}")
-            y -= VERTICAL_SPACING
-
-        p.showPage()
-        p.save()
-
-        buffer.seek(BUFFER_START_POSITION)
         return FileResponse(buffer, as_attachment=True,
-                            filename='shopping_cart.pdf')
+                            filename='shopping_cart.txt')

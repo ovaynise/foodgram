@@ -1,12 +1,13 @@
-from core.serializers import Base64ImageField
 from django.contrib.auth import authenticate, get_user_model
 from djoser.serializers import TokenCreateSerializer
 from djoser.serializers import UserSerializer as DjoserUserSerializer
-from recipes.models import Subscriptions
 from rest_framework import serializers
 from rest_framework.exceptions import AuthenticationFailed
 
-from backend.settings import LOGIN_FIELD
+from django.conf import settings
+from core.serializers import Base64ImageField
+from recipes.models import Subscriptions
+from users.constants import ME_PATH
 
 User = get_user_model()
 
@@ -41,16 +42,16 @@ class CustomUserSerializer(DjoserUserSerializer):
     def validate(self, attrs):
         if 'first_name' not in attrs or not attrs['first_name']:
             raise serializers.ValidationError(
-                {"first_name": "Это поле обязательно."})
+                {'first_name': 'Это поле обязательно.'})
         if 'last_name' not in attrs or not attrs['last_name']:
             raise serializers.ValidationError(
-                {"last_name": "Это поле обязательно."})
+                {'last_name': 'Это поле обязательно.'})
         return super().validate(attrs)
 
     def create(self, validated_data):
         password = validated_data.pop('password', None)
         if password is None:
-            raise serializers.ValidationError("Пароль обязателен.")
+            raise serializers.ValidationError('Пароль обязателен.')
         user = super().create(validated_data)
         user.set_password(password)
         user.save()
@@ -65,15 +66,15 @@ class CustomUserSerializer(DjoserUserSerializer):
 
     def to_representation(self, instance):
         request = self.context.get('request')
-        if request.path == '/api/users/me/' and request.user.is_anonymous:
-            raise AuthenticationFailed("Пожалуйста, авторизуйтесь.")
+        if request.path == ME_PATH and request.user.is_anonymous:
+            raise AuthenticationFailed('Пожалуйста, авторизуйтесь.')
         if request.method == 'POST':
             return {
-                "email": instance.email,
-                "id": instance.id,
-                "username": instance.username,
-                "first_name": instance.first_name,
-                "last_name": instance.last_name,
+                'email': instance.email,
+                'id': instance.id,
+                'username': instance.username,
+                'first_name': instance.first_name,
+                'last_name': instance.last_name,
             }
 
         return super().to_representation(instance)
@@ -83,28 +84,28 @@ class CustomTokenCreateSerializer(TokenCreateSerializer):
     """Сериализатор создания и выдачи токена по email."""
     password = serializers.CharField(
         required=False,
-        style={"input_type": "password"})
+        style={'input_type': 'password'})
 
     default_error_messages = {
-        "invalid_credentials": "Не правильный Email или Password",
-        "inactive_account": "Нет аккаунтов с такими данными",
+        'invalid_credentials': 'Не правильный Email или Password',
+        'inactive_account': 'Нет аккаунтов с такими данными',
     }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.user = None
-        self.fields[LOGIN_FIELD] = serializers.CharField(required=False)
+        self.fields[settings.LOGIN_FIELD] = serializers.CharField(required=False)
 
     def validate(self, attrs):
-        password = attrs.get("password")
-        params = {LOGIN_FIELD: attrs.get(LOGIN_FIELD)}
+        password = attrs.get('password')
+        params = {settings.LOGIN_FIELD: attrs.get(settings.LOGIN_FIELD)}
         self.user = authenticate(
-            request=self.context.get("request"), **params, password=password
+            request=self.context.get('request'), **params, password=password
         )
         if not self.user:
             self.user = User.objects.filter(**params).first()
             if self.user and not self.user.check_password(password):
-                self.fail("invalid_credentials")
+                self.fail('invalid_credentials')
         if self.user and self.user.is_active:
             return attrs
-        self.fail("invalid_credentials")
+        self.fail('invalid_credentials')

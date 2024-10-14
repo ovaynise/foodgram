@@ -1,11 +1,12 @@
-from core.views import DownloadShopCartView
 from django.urls import include, path, re_path
+from rest_framework.routers import DefaultRouter
+
+from users.views import AvatarDetail
+from core.views import DownloadShopCartView
 from recipes.views import (FavoriteViewSet, IngredientViewSet,
                            RecipeShortLinkView, RecipeViewSet,
                            ShoppingCartViewSet, SubscribeViewSet,
                            SubscriptionsViewSet, TagViewSet)
-from rest_framework.routers import DefaultRouter
-from users.views import AvatarDetail
 
 router = DefaultRouter()
 router.register('recipes', RecipeViewSet, basename='recipes')
@@ -13,7 +14,7 @@ router.register('tags', TagViewSet, basename='tags')
 router.register('ingredients', IngredientViewSet, basename='ingredients')
 
 
-app_name = "api"
+app_name = 'api'
 
 urlpatterns = [
     path('recipes/download_shopping_cart/',

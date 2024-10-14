@@ -1,4 +1,3 @@
-from core.serializers import Base64ImageField
 from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
 from rest_framework import serializers
@@ -6,6 +5,7 @@ from rest_framework.validators import UniqueTogetherValidator
 
 from .models import (Favorite, Ingredient, IngredientRecipe, Recipe,
                      ShoppingCart, Subscriptions, Tag)
+from core.serializers import Base64ImageField
 
 User = get_user_model()
 
@@ -70,18 +70,18 @@ class SubscribeSerializer(serializers.ModelSerializer):
             recipes = recipes[:int(limit)]
 
         return {
-            "email": user.email,
-            "id": user.id,
-            "username": user.username,
-            "first_name": user.first_name,
-            "last_name": user.last_name,
-            "is_subscribed": self.get_is_subscribed(instance),
-            "recipes": RecipeShortSerializer(
+            'email': user.email,
+            'id': user.id,
+            'username': user.username,
+            'first_name': user.first_name,
+            'last_name': user.last_name,
+            'is_subscribed': self.get_is_subscribed(instance),
+            'recipes': RecipeShortSerializer(
                 recipes,
                 many=True,
                 context=self.context).data,
-            "recipes_count": user.recipes.count(),
-            "avatar": request.build_absolute_uri(
+            'recipes_count': user.recipes.count(),
+            'avatar': request.build_absolute_uri(
                 image_url) if image_url else None,
         }
 
@@ -131,10 +131,10 @@ class ShoppingCartSerializer(serializers.ModelSerializer):
             image_url = request.build_absolute_uri(image_url)
 
         return {
-            "id": instance.recipe.id,
-            "name": instance.recipe.name,
-            "image": image_url,
-            "cooking_time": instance.recipe.cooking_time
+            'id': instance.recipe.id,
+            'name': instance.recipe.name,
+            'image': image_url,
+            'cooking_time': instance.recipe.cooking_time
         }
 
 
@@ -162,10 +162,10 @@ class FavoriteSerializer(serializers.ModelSerializer):
             image_url = request.build_absolute_uri(image_url)
 
         return {
-            "id": instance.recipe.id,
-            "name": instance.recipe.name,
-            "image": image_url,
-            "cooking_time": instance.recipe.cooking_time
+            'id': instance.recipe.id,
+            'name': instance.recipe.name,
+            'image': image_url,
+            'cooking_time': instance.recipe.cooking_time
         }
 
 

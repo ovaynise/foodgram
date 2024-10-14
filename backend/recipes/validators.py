@@ -1,6 +1,7 @@
 import re
 
 from django.core.exceptions import ValidationError
+
 from recipes.constants import MAX_TAG_LENGTH
 
 

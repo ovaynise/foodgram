@@ -1,3 +1,4 @@
 MAX_STRING_LENGTH = 150
 MAX_EMAIL_LENGTH = 254
 OWN_USERNAME = 'me'
+ME_PATH = '/api/users/me/'

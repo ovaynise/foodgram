@@ -3,29 +3,27 @@ import os
 from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
-from dotenv import find_dotenv, load_dotenv
+from django.conf import settings
 from hashids import Hashids
-from recipes.filters import IngredientFilter, RecipeFilter
-from recipes.pagination import RecipePagination, SubscribePagination
 from rest_framework import filters, generics, status, viewsets
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 
+from recipes.filters import IngredientFilter, RecipeFilter
+from recipes.pagination import RecipePagination, SubscribePagination
 from .models import (Favorite, Ingredient, Recipe, ShoppingCart, Subscriptions,
                      Tag)
+from utils import SHORT_LINK
 from .serializers import (FavoriteSerializer, IngredientSerializer,
                           RecipeGetSerializer, RecipePostSerializer,
                           ShoppingCartSerializer, SubscribeSerializer,
                           TagSerializer)
 
 User = get_user_model()
-load_dotenv(find_dotenv())
-SERVER_HOST = os.getenv("SERVER_DOMEN")
-SALT = os.getenv("SALT")
 
 
 class SubscribeViewSet(viewsets.ModelViewSet):
-    """ViewSet для подписки и отписки от пользователя"""
+    """ViewSet для подписки и отписки от пользователя."""
     serializer_class = SubscribeSerializer
     permission_classes = [IsAuthenticatedOrReadOnly]
     pagination_class = SubscribePagination
@@ -92,7 +90,7 @@ class SubscriptionsViewSet(viewsets.ModelViewSet):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def create(self, request, *args, **kwargs):
-        """POST запрос для подписки с поддержкой recipes_limit"""
+        """POST запрос для подписки с поддержкой recipes_limit."""
         author_id = kwargs.get('pk')
         user = request.user
         author = get_object_or_404(User, id=author_id)
@@ -116,13 +114,13 @@ class SubscriptionsViewSet(viewsets.ModelViewSet):
 
 
 class RecipeShortLinkView(generics.GenericAPIView):
-    hashids = Hashids(min_length=4, salt="SALT")
+    hashids = Hashids(min_length=4, salt=settings.SALT)
 
     def get(self, request, id):
         recipe = get_object_or_404(Recipe, id=id)
         short_id = self.hashids.encode(recipe.id)
-        short_link = f"https://{SERVER_HOST}/s/{short_id}"
-        return Response({"short-link": short_link})
+        short_link = SHORT_LINK + short_id
+        return Response({'short-link': short_link})
 
     def generate_short_link(self, recipe_id):
         return self.hashids.encode(recipe_id)
