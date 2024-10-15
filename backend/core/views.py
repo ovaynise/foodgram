@@ -1,15 +1,16 @@
 from io import BytesIO
 
 from django.http import FileResponse
-from recipes.models import IngredientRecipe, ShoppingCart
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
+from django.db.models import Sum
+
+from recipes.models import IngredientRecipe, ShoppingCart
 
 pdfmetrics.registerFont(TTFont('Arial',
                                'core/fonts/ArialRegular.ttf'))
-from django.db.models import Sum
 
 
 class DownloadShopCartView(APIView):
@@ -33,7 +34,8 @@ class DownloadShopCartView(APIView):
         for count, ingredient in enumerate(ingredients, 1):
             lines.append(
                 f"{count}. {ingredient['ingredient__name']}: "
-                f"{ingredient['total_amount']} {ingredient['ingredient__measurement_unit']}\n"
+                f"{ingredient['total_amount']} "
+                f"{ingredient['ingredient__measurement_unit']}\n"
             )
 
         buffer = BytesIO()

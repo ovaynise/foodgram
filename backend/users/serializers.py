@@ -94,7 +94,8 @@ class CustomTokenCreateSerializer(TokenCreateSerializer):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.user = None
-        self.fields[settings.LOGIN_FIELD] = serializers.CharField(required=False)
+        self.fields[settings.LOGIN_FIELD] = serializers.CharField(
+            required=False)
 
     def validate(self, attrs):
         password = attrs.get('password')

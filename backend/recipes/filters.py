@@ -1,6 +1,7 @@
 from django.contrib.auth import get_user_model
 from django_filters import rest_framework as django_filters
 from django_filters.rest_framework import FilterSet, filters
+from django.db.models import Count, F, Subquery
 
 from .models import Ingredient, Recipe, Subscriptions, Tag
 
@@ -16,11 +17,13 @@ class SubscriptionsFilter(django_filters.FilterSet):
 
     def filter_recipes_limit(self, queryset, name, value):
         if value is not None:
-            for subscription in queryset:
-                author = subscription.author
-                recipes = Recipe.objects.filter(author=author)
-                subscription.recipes = recipes[:value]
-                subscription.recipes_count = subscription.recipes.count()
+            recipe_ids = (Recipe.objects
+                          .filter(author=F('author'))
+                          .values('id')[:value])
+            queryset = queryset.annotate(
+                recipes_count=Count('author__recipe'),
+                recipes=Subquery(recipe_ids)
+            )
         return queryset
 
 

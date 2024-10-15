@@ -123,7 +123,7 @@ class TagRecipe(models.Model):
         verbose_name_plural = 'Тэги с рецептами'
 
     def __str__(self):
-        return f"{self.recipe.name} - {self.tag.name}"
+        return f'{self.recipe.name} - {self.tag.name}'
 
 
 class IngredientRecipe(models.Model):

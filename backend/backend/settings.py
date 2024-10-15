@@ -26,12 +26,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY WARNING: keep the secret key used in production secret!
 
-SECRET_KEY = os.getenv("DJANGO_SECRET_KEY")
-SERVER_IP = os.getenv("SERVER_IP")
-SERVER_DOMEN = os.getenv("SERVER_DOMEN")
-DEBUG = os.getenv("DEBUG", "False").lower() == "true"
-SERVER_HOST = os.getenv("SERVER_DOMEN")
-SALT = os.getenv("SALT")
+SECRET_KEY = os.getenv('DJANGO_SECRET_KEY')
+SERVER_IP = os.getenv('SERVER_IP')
+SERVER_DOMEN = os.getenv('SERVER_DOMEN')
+DEBUG = os.getenv('DEBUG', 'False').lower() == 'true'
+SERVER_HOST = os.getenv('SERVER_DOMEN')
+SALT = os.getenv('SALT')
 
 
 ALLOWED_HOSTS = [SERVER_IP, SERVER_DOMEN, 'localhost', '127.0.0.1']
@@ -170,9 +170,9 @@ DJOSER = {
         'user_create': 'users.serializers.CustomUserSerializer',
         'current_user': 'users.serializers.CustomUserSerializer',
     },
-    "PERMISSIONS": {
-        "user": ["rest_framework.permissions.AllowAny"],
-        "user_list": ["rest_framework.permissions.AllowAny"],
+    'PERMISSIONS': {
+        'user': ['rest_framework.permissions.AllowAny'],
+        'user_list': ['rest_framework.permissions.AllowAny'],
         'current_user': ['djoser.permissions.CurrentUserOrAdmin'],
     }
 }
@@ -181,10 +181,10 @@ LOGIN_FIELD = 'email'
 CSV_DATA_PATH = 'data/'
 
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",
-    "https://127.0.0.1",
-    f"http://{SERVER_DOMEN}",
-    f"http://{SERVER_IP}",
+    'http://localhost:3000',
+    'https://127.0.0.1',
+    f'http://{SERVER_DOMEN}',
+    f'http://{SERVER_IP}',
 ]
 CSRF_TRUSTED_ORIGINS = [f'https://*.{SERVER_DOMEN}', 'https://*.127.0.0.1']
-CORS_URLS_REGEX = r"^/api/.*$"
+CORS_URLS_REGEX = r'^/api/.*$'
