@@ -241,7 +241,7 @@ class RecipePostSerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError(
                     {'ingredients': f'Количество для '
                                     f'ингредиента с ID {ingredient_id} '
-                                    f'должно быть больше 0.'})
+                                    f'должно быть больше 0!'})
         return attrs
 
     @transaction.atomic
