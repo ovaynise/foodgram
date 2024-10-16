@@ -260,7 +260,6 @@ class RecipePostSerializer(serializers.ModelSerializer):
         if tags_data:
             instance.tags.set(tags_data)
 
-
         if ingredients_data:
             instance.recipe_with_ingredient.all().delete()
             self.create_ingredients(instance, ingredients_data)
