@@ -31,6 +31,7 @@ SERVER_IP = os.getenv('SERVER_IP')
 SERVER_DOMEN = os.getenv('SERVER_DOMEN')
 DEBUG = os.getenv('DEBUG', 'False').lower() == 'true'
 SERVER_HOST = os.getenv('SERVER_DOMEN')
+SALT = os.getenv('SALT')
 
 
 ALLOWED_HOSTS = [SERVER_IP, SERVER_DOMEN, 'localhost', '127.0.0.1']
