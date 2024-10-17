@@ -2,13 +2,15 @@
 Foodgram
 
 ## ДЛЯ ТЕСТИРОВАНИЯ:
-Адрес сайта: https://edagram.zapto.org/recipes
-Логин Админки
+Адрес сайта: https://edagram.zapto.org
+
 ```
+Логин Админки
 testpython
 ```
-Пароль Админки
+
 ```
+Пароль Админки
 testgithub
 ```
 ## Описание проекта:
