@@ -6,8 +6,7 @@ from core.views import DownloadShopCartView
 from recipes.views import (FavoriteViewSet, IngredientViewSet,
                            RecipeShortLinkView, RecipeViewSet,
                            ShoppingCartViewSet, SubscribeViewSet,
-                           SubscriptionsViewSet, TagViewSet,
-                           RecipeRedirectView)
+                           SubscriptionsViewSet, TagViewSet)
 
 router = DefaultRouter()
 router.register('recipes', RecipeViewSet, basename='recipes')
@@ -42,6 +41,4 @@ urlpatterns = [
     path('users/me/avatar/',
          AvatarDetail.as_view(),
          name='avatar-update'),
-    path('s/<str:short_id>/', RecipeRedirectView.as_view(),
-         name='recipe-redirect'),
 ]

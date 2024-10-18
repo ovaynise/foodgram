@@ -25,12 +25,10 @@ class RecipeRedirectView(APIView):
     hashids = Hashids(min_length=4, salt=settings.SALT)
 
     def get(self, request, short_id):
-        print(f"Received short_id: {short_id}")  # Для отладки
         decoded_id = self.hashids.decode(short_id)
         if not decoded_id:
             return Response({'detail': 'Invalid short link.'}, status=404)
         recipe_id = decoded_id[0]
-        recipe = get_object_or_404(Recipe, id=recipe_id)
         return redirect(f'/recipes/{recipe_id}/')
 
 
