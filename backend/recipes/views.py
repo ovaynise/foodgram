@@ -1,11 +1,12 @@
 from django.contrib.auth import get_user_model
-from django.shortcuts import get_object_or_404
+from django.shortcuts import get_object_or_404, redirect
 from django_filters.rest_framework import DjangoFilterBackend
 from django.conf import settings
 from hashids import Hashids
 from rest_framework import filters, generics, status, viewsets
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
+from rest_framework.views import APIView
 
 from recipes.filters import IngredientFilter, RecipeFilter
 from recipes.pagination import RecipePagination, SubscribePagination
@@ -18,6 +19,19 @@ from .serializers import (FavoriteSerializer, IngredientSerializer,
                           TagSerializer)
 
 User = get_user_model()
+
+
+class RecipeRedirectView(APIView):
+    hashids = Hashids(min_length=4, salt=settings.SALT)
+
+    def get(self, request, short_id):
+        print(f"Received short_id: {short_id}")  # Для отладки
+        decoded_id = self.hashids.decode(short_id)
+        if not decoded_id:
+            return Response({'detail': 'Invalid short link.'}, status=404)
+        recipe_id = decoded_id[0]
+        recipe = get_object_or_404(Recipe, id=recipe_id)
+        return redirect(f'/recipes/{recipe_id}/')
 
 
 class BaseRecipeViewSet(viewsets.ModelViewSet):
