@@ -1,5 +1,6 @@
 # **Проект Foodgram**
 Foodgram
+![712D8DDE-C128-47FB-BAF0-4259F688C783](https://github.com/user-attachments/assets/3007539b-6ada-49f3-8951-4c957b64b0b3)
 
 
 ## Описание проекта:
