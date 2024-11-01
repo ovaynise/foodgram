@@ -47,6 +47,17 @@ SERVER_DOMEN=домен_сервера
 SALT=соль_для_шифрования
 DOCKER_USERNAME=юзернейм_на_докер_хабе
 ```
+Github secrets:
+```
+DOCKER_PASSWORD=пароль_докер_хаба
+DOCKER_USERNAME=логин_докер_хаба
+HOST=ip_сервера
+SSH_KEY=приватный_ключ
+SSH_PASSPHRASE=пароль_от_приватного_ключа
+TELEGRAM_TO=ид_телеграмма_для_отправки_сообщения_деплоя
+TELEGRAM_TOKENS=телеграм_токен
+USER=имя_пользователя_на_сервере
+```
 
 Должен быть установлен Docker и DockerCompose.
 
